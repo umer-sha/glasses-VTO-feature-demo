@@ -1,69 +1,54 @@
-import Image from "next/image";
+import Link from "next/link";
+
+const glasses = [
+  { id: "aviator", name: "Classic Aviator", price: 149, shape: "aviator", color: "#d4af37" },
+  { id: "tortoise", name: "Tortoiseshell", price: 129, shape: "round", color: "#8b5a2b" },
+  { id: "black", name: "Round Wire", price: 139, shape: "rect", color: "#1c1c1c" },
+];
+
+function Glasses({ shape, color }: { shape: string; color: string }) {
+  const s = { stroke: color, strokeWidth: 7, fill: "rgba(180,210,255,0.12)" };
+  return (
+    <svg viewBox="0 0 300 120" className="w-4/5">
+      {shape === "round" && (<><circle cx="82" cy="62" r="38" {...s} /><circle cx="218" cy="62" r="38" {...s} /></>)}
+      {shape === "rect" && (<><rect x="24" y="32" width="102" height="62" rx="14" {...s} /><rect x="174" y="32" width="102" height="62" rx="14" {...s} /></>)}
+      {shape === "aviator" && (<><path d="M28 34H126Q134 34 132 46Q124 98 80 98Q36 98 26 46Q24 34 28 34Z" {...s} /><path d="M174 34H272Q276 34 274 46Q264 98 220 98Q176 98 168 46Q166 34 174 34Z" {...s} /></>)}
+      <path d="M126 52Q150 36 174 52" fill="none" stroke={color} strokeWidth="7" strokeLinecap="round" />
+      <path d="M24 44L6 36M276 44L294 36" stroke={color} strokeWidth="7" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main className="min-h-screen bg-neutral-950 text-neutral-100">
+      <header className="border-b border-neutral-800 px-6 py-5 text-lg font-light uppercase tracking-[0.3em]">
+        Lumière
+      </header>
+
+      <section className="px-6 py-20 text-center">
+        <h1 className="text-4xl font-light sm:text-6xl">
+          Find Your Perfect Frames.
+          <br />
+          <span className="text-neutral-400">Try Them On Live.</span>
+        </h1>
+      </section>
+
+      <section className="mx-auto grid max-w-6xl gap-6 px-6 pb-24 sm:grid-cols-3">
+        {glasses.map((g) => (
+          <Link
+            key={g.id}
+            href={`/select-color?id=${g.id}`}
+            className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6 transition hover:border-neutral-500"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            <div className="flex aspect-[3/2] items-center justify-center rounded-xl bg-neutral-950">
+              <Glasses shape={g.shape} color={g.color} />
+            </div>
+            <h2 className="mt-5 text-lg font-light">{g.name}</h2>
+            <p className="text-sm text-neutral-400">${g.price}</p>
+          </Link>
+        ))}
+      </section>
+    </main>
   );
 }
