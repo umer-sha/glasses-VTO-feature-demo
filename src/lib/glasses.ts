@@ -4,6 +4,7 @@ export interface Glasses {
   price: number;
   shape: string;
   color: string;
+  hostingerUrl: string;
   turn?: number;
   lens?: string[];
   hide?: string[];
@@ -17,12 +18,13 @@ export const glasses: Record<string, Glasses> = {
     model: "/models/glasses.glb",
     price: 149,
     shape: "aviator",
-    color: "#d4af37",
+    color: "#1c1c1c", // Default Matte Black
+    hostingerUrl: "https://realmenluxury.fashion/luxury-gold-frame-square-sunglasses",
     turn: 0,
     colors: [
-      { name: "Gold / Tinted", hex: "#d4af37", original: true },
-      { name: "Silver / Smoke", hex: "#c0c0c0" },
-      { name: "Matte Black", hex: "#1c1c1c" }
+      { name: "Matte Black", hex: "#1c1c1c", original: true },
+      { name: "Gold / Tinted", hex: "#d4af37" },
+      { name: "Silver / Smoke", hex: "#c0c0c0" }
     ],
   },
   tortoise: {
@@ -31,6 +33,7 @@ export const glasses: Record<string, Glasses> = {
     price: 169,
     shape: "round",
     color: "#8b5a2b",
+    hostingerUrl: "https://realmenluxury.fashion/retro-oval-gold-sunglasses",
     turn: -Math.PI / 2,
     colors: [
       { name: "Tortoiseshell", hex: "#8b5a2b", original: true },
@@ -44,6 +47,7 @@ export const glasses: Record<string, Glasses> = {
     price: 139,
     shape: "rect",
     color: "#1c1c1c",
+    hostingerUrl: "https://realmenluxury.fashion/retro-square-navigator-sunglasses",
     turn: -Math.PI / 2,
     colors: [
       { name: "Gunmetal Wire", hex: "#1c1c1c", original: true },
@@ -53,10 +57,9 @@ export const glasses: Record<string, Glasses> = {
   },
 };
 
-// finds a product from the ?id= in the link (old ids still work)
-export function getGlasses(id?: string) {
-  const key = id === "black" || id === "heartglasses" ? "wire" : id ?? "";
-  return glasses[key]
-    ? { key, product: glasses[key] }
-    : { key: "aviator", product: glasses.aviator };
+export function getGlasses(id?: string): Glasses {
+  if (id && glasses[id]) {
+    return glasses[id];
+  }
+  return glasses["aviator"];
 }

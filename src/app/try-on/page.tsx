@@ -1,16 +1,16 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, Suspense } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { glasses, getGlasses } from "@/lib/glasses";
+import { glasses } from "@/lib/glasses";
 
 const TryOnView = dynamic(() => import("@/components/TryOnView"), { ssr: false });
 
 const FRAME_NAMES: Record<string, string> = {
-  aviator: "Classic Aviator",
-  tortoise: "Tortoiseshell",
-  wire: "Round Wire",
+  aviator: "Luxe Square Aviator Sunglasses",
+  tortoise: "Retro Oval Sunglasses",
+  wire: "Geometric Navigator Sunglasses",
 };
 
 function getSingleRecommendation(shape: string, skinTone: string) {
@@ -19,50 +19,60 @@ function getSingleRecommendation(shape: string, skinTone: string) {
 
   if (shape === "Square" || shape === "Diamond") {
     frame = "wire";
-    why = "Round wire frames soften sharp angles and a strong jawline.";
+    why = "Geometric navigator frames soften sharp angles and a strong jawline.";
   } else if (shape === "Round" || shape === "Oblong") {
     frame = "tortoise";
-    why = "Structured tortoiseshell frames add definition and contrast to softer curves.";
+    why = "Retro oval frames add definition and contrast to softer facial curves.";
   } else if (shape === "Heart") {
     frame = "aviator";
-    why = "Classic aviators balance a broader forehead with a tapered chin.";
+    why = "Luxe square aviators balance a broader forehead with a tapered chin.";
   }
 
   const t = skinTone.toLowerCase();
   const warm = t.includes("warm");
-  let color = warm ? "Gold" : "Silver";
-  let colorWhy = warm ? "Gold lifts warm skin tones." : "Silver contrasts cleanly with cool tones.";
+  let color = warm ? "Gold / Tinted" : "Silver / Smoke";
+  let colorWhy = warm ? "Gold tones elevate warm skin tones." : "Silver tones contrast cleanly with cool tones.";
 
   if (frame === "tortoise") {
-    color = "Black";
-    colorWhy = "Deep tones match your skin profile richly.";
+    color = "Tortoiseshell";
+    colorWhy = "Deep tortoiseshell tones match your skin profile richly.";
   }
 
   return { frame, color, reason: `${why} ${colorWhy}` };
 }
 
-export default function TryOnPage({
+function TryOnContent({
   searchParams,
 }: {
   searchParams: Promise<{ id?: string; color?: string }>;
 }) {
   const params = use(searchParams);
-  const [frameKey, setFrameKey] = useState(getGlasses(params.id).key);
-  const [colorName, setColorName] = useState(params.color ?? "Original");
+  
+  // Safe initial frame key lookup
+  const initialKey = params.id && glasses[params.id] ? params.id : "aviator";
+  const [frameKey, setFrameKey] = useState<string>(initialKey);
+  const [colorName, setColorName] = useState<string>(params.color ?? "");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [faceMetrics, setFaceMetrics] = useState<{ shape: string; skinTone: string } | null>(null);
   const [showBanner, setShowBanner] = useState(true);
 
-  const product = glasses[frameKey];
-  const active = product.colors.find((c) => c.name === colorName) ?? product.colors[0];
+  // Safe product fallback
+  const product = glasses[frameKey] || glasses["aviator"];
+  const productColors = product?.colors ?? [];
+
+  // Safe active color calculation
+  const active =
+    productColors.find(
+      (c) => c.name.toLowerCase() === colorName.toLowerCase()
+    ) ?? productColors[0] ?? { name: product?.color || "Default", hex: product?.color || "#1c1c1c", original: true };
 
   function pickFrame(key: string) {
     setFrameKey(key);
     const newProduct = glasses[key];
-    if (newProduct && newProduct.colors.length > 0) {
+    if (newProduct && newProduct.colors && newProduct.colors.length > 0) {
       setColorName(newProduct.colors[0].name);
     } else {
-      setColorName("Original");
+      setColorName("");
     }
   }
 
@@ -98,6 +108,8 @@ export default function TryOnPage({
             </svg>
           )}
         </button>
+
+        <div className="text-sm font-light tracking-[0.3em] uppercase">INNOVIBE STUDIOS</div>
 
         <Link href="/" className={`text-sm font-medium transition ${isDark ? "text-neutral-400 hover:text-white" : "text-neutral-600 hover:text-black"}`}>
           ← Back
@@ -169,7 +181,7 @@ export default function TryOnPage({
             Colour: {active.name}
           </p>
           <div className="mt-3 flex gap-4">
-            {product.colors.map((c) => (
+            {productColors.map((c) => (
               <button
                 key={c.name}
                 onClick={() => setColorName(c.name)}
@@ -187,5 +199,17 @@ export default function TryOnPage({
         </div>
       </section>
     </main>
+  );
+}
+
+export default function TryOnPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ id?: string; color?: string }>;
+}) {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-neutral-950 flex items-center justify-center text-neutral-400 font-mono text-sm">Loading Try-On Experience...</div>}>
+      <TryOnContent searchParams={searchParams} />
+    </Suspense>
   );
 }

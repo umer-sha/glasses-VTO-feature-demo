@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
 import type { Glasses } from "@/lib/glasses";
 
 interface AIStylistProps {
@@ -19,7 +18,8 @@ const FRAME_NAMES: Record<string, string> = {
   wire: "Geometric Navigator Sunglasses",
 };
 
-// Determines the primary recommended frame & color based on face shape and skin tone
+const HOSTINGER_FALLBACK_URL = "https://realmenluxury.fashion";
+
 function getSingleRecommendation(shape: string, skinTone: string) {
   let frame = "aviator";
 
@@ -31,15 +31,7 @@ function getSingleRecommendation(shape: string, skinTone: string) {
     frame = "aviator";
   }
 
-  const t = skinTone.toLowerCase();
-  const warm = t.includes("warm");
-  let color = warm ? "Gold" : "Silver";
-
-  if (frame === "tortoise") {
-    color = "Tortoiseshell";
-  }
-
-  return { frame, color, frameName: FRAME_NAMES[frame] };
+  return { frame, frameName: FRAME_NAMES[frame] };
 }
 
 export default function AIStylistOverlay({
@@ -50,11 +42,8 @@ export default function AIStylistOverlay({
   onSelectColor,
   faceMetrics,
 }: AIStylistProps) {
-  const router = useRouter();
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("Tap mic to speak to AI Stylist");
-  const [cart, setCart] = useState<{ name: string; color: string; price: number }[]>([]);
-  const [showCartModal, setShowCartModal] = useState(false);
   const [hasGreeted, setHasGreeted] = useState(false);
 
   const recognitionRef = useRef<any>(null);
@@ -69,13 +58,33 @@ export default function AIStylistOverlay({
     }
   };
 
-  // Speaks the exact custom greeting out loud as soon as face scan finishes
+  const handleAddToCart = () => {
+    speak(`Adding ${currentProduct.name} to your store bag.`);
+    const targetUrl = currentProduct?.hostingerUrl || HOSTINGER_FALLBACK_URL;
+    setTimeout(() => {
+      if (typeof window !== "undefined") {
+        window.location.href = targetUrl;
+      }
+    }, 1200);
+  };
+
+  const handleCheckoutRedirect = () => {
+    speak("Taking you directly to the store checkout.");
+    const targetUrl = currentProduct?.hostingerUrl || HOSTINGER_FALLBACK_URL;
+    setTimeout(() => {
+      if (typeof window !== "undefined") {
+        window.location.href = targetUrl;
+      }
+    }, 1000);
+  };
+
+  // Speaks the exact requested greeting when face scan finishes
   useEffect(() => {
     if (faceMetrics && !hasGreeted) {
       setHasGreeted(true);
       const rec = getSingleRecommendation(faceMetrics.shape, faceMetrics.skinTone);
-      const greeting = `Hello, I'll be your digital optician at Innovibe Studios today. I scanned your face and you have a ${faceMetrics.shape} face shape with a ${faceMetrics.skinTone} skin tone, so I recommend you try the ${rec.frameName}.`;
-      
+      const greeting = `Hello, I'll be your digital AI optician at RealMen Luxury. I've scanned your face, you have a ${faceMetrics.shape} face shape and a ${faceMetrics.skinTone} skin tone, so I recommend the ${rec.frameName}.`;
+
       speak(greeting);
       setTranscript(`AI: Recommended ${rec.frameName}`);
     }
@@ -146,14 +155,11 @@ export default function AIStylistOverlay({
       onSelectFrame("wire");
       speak("Switching to Geometric Navigator Sunglasses.");
     } else if (cartKeywords.some((w) => cmd.includes(w))) {
-      setCart((prev) => [...prev, { name: currentProduct.name, color: currentColor, price: currentProduct.price }]);
-      speak(`Added ${currentProduct.name} to your cart.`);
-      setShowCartModal(true);
+      handleAddToCart();
     } else if (checkoutKeywords.some((w) => cmd.includes(w))) {
-      speak("Taking you to checkout.");
-      router.push("/checkout");
+      handleCheckoutRedirect();
     } else {
-      speak("I heard you. Try asking for aviators, retro ovals, geometric navigators, or to add to cart.");
+      speak("I heard you. Try asking for aviators, retro ovals, geometric navigators, or to add to bag.");
     }
   };
 
@@ -173,7 +179,7 @@ export default function AIStylistOverlay({
           </button>
           <div className="text-left truncate">
             <div className="text-[10px] uppercase tracking-widest text-neutral-400">
-              {faceMetrics ? `Innovibe Optician • ${faceMetrics.shape} Face` : "AI Stylist Assistant"}
+              {faceMetrics ? `RealMen Luxury Optician • ${faceMetrics.shape} Face` : "AI Stylist Assistant"}
             </div>
             <div className="text-xs text-neutral-200 truncate font-mono">{transcript}</div>
           </div>
@@ -181,13 +187,13 @@ export default function AIStylistOverlay({
 
         <div className="flex items-center gap-2 shrink-0">
           <button
-            onClick={() => setShowCartModal(!showCartModal)}
+            onClick={handleAddToCart}
             className="px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs text-white transition"
           >
-            🛒 Cart ({cart.length})
+            🛒 Add to Store Bag
           </button>
           <button
-            onClick={() => router.push("/checkout")}
+            onClick={handleCheckoutRedirect}
             className="px-4 py-1.5 rounded-xl bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition"
           >
             Checkout →
