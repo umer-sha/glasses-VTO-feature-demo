@@ -14,9 +14,9 @@ interface AIStylistProps {
 }
 
 const FRAME_NAMES: Record<string, string> = {
-  aviator: "Classic Aviator",
-  tortoise: "Tortoiseshell",
-  wire: "Round Wire",
+  aviator: "Luxe Square Aviator Sunglasses",
+  tortoise: "Retro Oval Sunglasses",
+  wire: "Geometric Navigator Sunglasses",
 };
 
 // Determines the primary recommended frame & color based on face shape and skin tone
@@ -36,7 +36,7 @@ function getSingleRecommendation(shape: string, skinTone: string) {
   let color = warm ? "Gold" : "Silver";
 
   if (frame === "tortoise") {
-    color = "Black";
+    color = "Tortoiseshell";
   }
 
   return { frame, color, frameName: FRAME_NAMES[frame] };
@@ -74,7 +74,7 @@ export default function AIStylistOverlay({
     if (faceMetrics && !hasGreeted) {
       setHasGreeted(true);
       const rec = getSingleRecommendation(faceMetrics.shape, faceMetrics.skinTone);
-      const greeting = `Hello, I'll be your digital optician today. I scanned your face and you have a ${faceMetrics.shape} face shape with a ${faceMetrics.skinTone} skin tone, so I recommend you try ${rec.frameName}.`;
+      const greeting = `Hello, I'll be your digital optician at Innovibe Studios today. I scanned your face and you have a ${faceMetrics.shape} face shape with a ${faceMetrics.skinTone} skin tone, so I recommend you try the ${rec.frameName}.`;
       
       speak(greeting);
       setTranscript(`AI: Recommended ${rec.frameName}`);
@@ -130,21 +130,21 @@ export default function AIStylistOverlay({
   };
 
   const handleIntent = (cmd: string) => {
-    const aviatorKeywords = ["aviator", "pilot", "classic"];
-    const tortoiseKeywords = ["tortoise", "plastic", "brown"];
-    const wireKeywords = ["wire", "round", "metal", "silver"];
+    const aviatorKeywords = ["aviator", "luxe", "square", "pilot"];
+    const tortoiseKeywords = ["tortoise", "retro", "oval", "brown"];
+    const wireKeywords = ["wire", "geometric", "navigator", "metal"];
     const cartKeywords = ["cart", "bag", "add"];
     const checkoutKeywords = ["checkout", "buy", "pay"];
 
     if (aviatorKeywords.some((w) => cmd.includes(w))) {
       onSelectFrame("aviator");
-      speak("Switching to Classic Aviator.");
+      speak("Switching to Luxe Square Aviator Sunglasses.");
     } else if (tortoiseKeywords.some((w) => cmd.includes(w))) {
       onSelectFrame("tortoise");
-      speak("Switching to Tortoiseshell.");
+      speak("Switching to Retro Oval Sunglasses.");
     } else if (wireKeywords.some((w) => cmd.includes(w))) {
       onSelectFrame("wire");
-      speak("Switching to Round Wire.");
+      speak("Switching to Geometric Navigator Sunglasses.");
     } else if (cartKeywords.some((w) => cmd.includes(w))) {
       setCart((prev) => [...prev, { name: currentProduct.name, color: currentColor, price: currentProduct.price }]);
       speak(`Added ${currentProduct.name} to your cart.`);
@@ -153,7 +153,7 @@ export default function AIStylistOverlay({
       speak("Taking you to checkout.");
       router.push("/checkout");
     } else {
-      speak("I heard you. Try asking for aviators, wire frames, or to add to cart.");
+      speak("I heard you. Try asking for aviators, retro ovals, geometric navigators, or to add to cart.");
     }
   };
 
@@ -173,7 +173,7 @@ export default function AIStylistOverlay({
           </button>
           <div className="text-left truncate">
             <div className="text-[10px] uppercase tracking-widest text-neutral-400">
-              {faceMetrics ? `AI Optician • ${faceMetrics.shape} Face` : "AI Stylist Assistant"}
+              {faceMetrics ? `Innovibe Optician • ${faceMetrics.shape} Face` : "AI Stylist Assistant"}
             </div>
             <div className="text-xs text-neutral-200 truncate font-mono">{transcript}</div>
           </div>
