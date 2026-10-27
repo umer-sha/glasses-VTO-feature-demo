@@ -1,12 +1,12 @@
 import Link from "next/link";
 
 const glasses = [
-  { id: "aviator", name: "Classic Aviator", price: 149, shape: "aviator", color: "#d4af37" },
-  { id: "tortoise", name: "Tortoiseshell", price: 129, shape: "round", color: "#8b5a2b" },
-  { id: "black", name: "Round Wire", price: 139, shape: "rect", color: "#1c1c1c" },
+  { id: "aviator", name: "Luxe Square Aviator Sunglasses", price: 149, shape: "aviator", color: "#d4af37" },
+  { id: "tortoise", name: "Retro Oval Sunglasses", price: 169, shape: "round", color: "#8b5a2b" },
+  { id: "wire", name: "Geometric Navigator Sunglasses", price: 139, shape: "rect", color: "#1c1c1c" },
 ];
 
-function Glasses({ shape, color }: { shape: string; color: string }) {
+function GlassesSVG({ shape, color }: { shape: string; color: string }) {
   const s = { stroke: color, strokeWidth: 7, fill: "rgba(180,210,255,0.12)" };
   return (
     <svg viewBox="0 0 300 120" className="w-4/5">
@@ -22,8 +22,8 @@ function Glasses({ shape, color }: { shape: string; color: string }) {
 export default function Home() {
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100">
-      <header className="border-b border-neutral-800 px-6 py-5 text-lg font-light uppercase tracking-[0.3em]">
-        Lumière
+      <header className="border-b border-neutral-800 px-6 py-5 text-lg font-light tracking-[0.3em]">
+        INNOVIBE STUDIOS
       </header>
 
       <section className="px-6 py-20 text-center">
@@ -42,7 +42,7 @@ export default function Home() {
             className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6 transition hover:border-neutral-500"
           >
             <div className="flex aspect-[3/2] items-center justify-center rounded-xl bg-neutral-950">
-              <Glasses shape={g.shape} color={g.color} />
+              <GlassesSVG shape={g.shape} color={g.color} />
             </div>
             <h2 className="mt-5 text-lg font-light">{g.name}</h2>
             <p className="text-sm text-neutral-400">${g.price}</p>
