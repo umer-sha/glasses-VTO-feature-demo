@@ -23,7 +23,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100">
       <header className="border-b border-neutral-800 px-6 py-5 text-lg font-light tracking-[0.3em]">
-        INNOVIBE STUDIOS
+        INNOVIBE DIGITAL
       </header>
 
       <section className="px-6 py-20 text-center">

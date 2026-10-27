@@ -9,7 +9,7 @@ export interface Glasses {
   lens?: string[];
   hide?: string[];
   recolor?: string[];
-  colors?: { name: string; hex: string }[];
+  colors?: { name: string; hex: string; original?: boolean }[];
 }
 
 export const glasses: Record<string, Glasses> = {
