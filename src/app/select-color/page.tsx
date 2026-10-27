@@ -1,78 +1,54 @@
 "use client";
 
-import { use, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import GlassesViewer from "@/components/GlassesViewer";
-import { getGlasses } from "@/lib/glasses";
+import { glasses } from "@/lib/glasses";
 
-export default function SelectColor({
-  searchParams,
-}: {
-  searchParams: Promise<{ id?: string }>;
-}) {
-  const { id } = use(searchParams);
-  const { key, product } = getGlasses(id);
-  const [selected, setSelected] = useState("Original");
-  const active = product.colors.find((c) => c.name === selected) ?? product.colors[0];
+export default function SelectColorPage() {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") || "aviator";
+  const product = glasses[id];
+
+  // Safe fallback if product doesn't exist
+  if (!product) {
+    return (
+      <main className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col items-center justify-center p-6 text-center">
+        <h1 className="text-2xl font-light mb-4">Product not found</h1>
+        <Link href="/" className="text-sm underline text-neutral-400">
+          Return to Home
+        </Link>
+      </main>
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-neutral-100">
-      <header className="flex items-center justify-between border-b border-neutral-800 px-6 py-5">
-        <Link href="/" className="text-lg font-light uppercase tracking-[0.3em]">
-          Lumière
-        </Link>
-        <Link href="/" className="text-sm text-neutral-400 hover:text-white">
-          ← Back
-        </Link>
+    <main className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col justify-between p-6">
+      <header className="border-b border-neutral-800 pb-4 text-lg font-light tracking-[0.3em]">
+        INNOVIBE STUDIOS
       </header>
 
-      <section className="mx-auto grid max-w-5xl gap-12 px-6 py-16 md:grid-cols-2">
-        <div className="h-80 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 md:h-96">
-          <GlassesViewer
-            key={product.model}
-            url={product.model}
-            color={active.original ? null : active.hex}
-            recolor={product.recolor}
-            lens={product.lens}
-            hide={product.hide}
-            turn={product.turn}
-          />
-        </div>
+      <section className="my-auto max-w-xl mx-auto text-center">
+        <h1 className="text-3xl font-light mb-2">{product.name}</h1>
+        <p className="text-neutral-400 mb-8">${product.price}</p>
 
-        <div className="flex flex-col justify-center">
-          <h1 className="text-4xl font-light">{product.name}</h1>
-          <p className="mt-2 text-xl text-neutral-300">${product.price}</p>
-
-          <p className="mt-10 text-sm uppercase tracking-widest text-neutral-500">
-            Colour: {active.name}
-          </p>
-          <div className="mt-4 flex gap-4">
-            {product.colors.map((c) => (
-              <button
-                key={c.name}
-                onClick={() => setSelected(c.name)}
-                title={c.name}
-                aria-label={c.name}
-                className={`h-11 w-11 rounded-full border-2 transition ${
-                  active.name === c.name
-                    ? "scale-110 border-white"
-                    : "border-neutral-700 hover:border-neutral-400"
-                }`}
-                style={{ backgroundColor: c.hex }}
-              />
-            ))}
-          </div>
-
-          <div className="mt-10">
+        <div className="flex flex-wrap justify-center gap-4">
+          {product.colors?.map((colorOption, idx) => (
             <Link
-              href={`/try-on?id=${key}&color=${encodeURIComponent(active.name)}`}
-              className="inline-block rounded-full bg-white px-8 py-4 font-medium text-neutral-950 hover:bg-neutral-200"
+              key={idx}
+              href={`/try-on?id=${id}&color=${idx}`}
+              className="px-6 py-3 rounded-full border border-neutral-700 bg-neutral-900 hover:border-neutral-400 transition"
             >
-              📷 Try On
+              {colorOption.name}
             </Link>
-          </div>
+          ))}
         </div>
       </section>
+
+      <footer className="text-center text-xs text-neutral-500 pb-4">
+        <Link href="/" className="underline hover:text-neutral-300">
+          Back to Catalog
+        </Link>
+      </footer>
     </main>
   );
 }
