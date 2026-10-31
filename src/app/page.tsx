@@ -1,54 +1,200 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { glasses } from "@/lib/glasses";
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-const glasses = [
-  { id: "aviator", name: "Luxe Square Aviator Sunglasses", price: 149, shape: "aviator", color: "#d4af37" },
-  { id: "tortoise", name: "Retro Oval Sunglasses", price: 169, shape: "round", color: "#8b5a2b" },
-  { id: "wire", name: "Geometric Navigator Sunglasses", price: 139, shape: "rect", color: "#1c1c1c" },
-];
+function Catalog3DCanvas({ modelUrl, turn = 0 }: { modelUrl: string; turn?: number }) {
+  const mountRef = useRef<HTMLDivElement>(null);
 
-function GlassesSVG({ shape, color }: { shape: string; color: string }) {
-  const s = { stroke: color, strokeWidth: 7, fill: "rgba(180,210,255,0.12)" };
-  return (
-    <svg viewBox="0 0 300 120" className="w-4/5">
-      {shape === "round" && (<><circle cx="82" cy="62" r="38" {...s} /><circle cx="218" cy="62" r="38" {...s} /></>)}
-      {shape === "rect" && (<><rect x="24" y="32" width="102" height="62" rx="14" {...s} /><rect x="174" y="32" width="102" height="62" rx="14" {...s} /></>)}
-      {shape === "aviator" && (<><path d="M28 34H126Q134 34 132 46Q124 98 80 98Q36 98 26 46Q24 34 28 34Z" {...s} /><path d="M174 34H272Q276 34 274 46Q264 98 220 98Q176 98 168 46Q166 34 174 34Z" {...s} /></>)}
-      <path d="M126 52Q150 36 174 52" fill="none" stroke={color} strokeWidth="7" strokeLinecap="round" />
-      <path d="M24 44L6 36M276 44L294 36" stroke={color} strokeWidth="7" strokeLinecap="round" />
-    </svg>
-  );
+  useEffect(() => {
+    const container = mountRef.current;
+    if (!container) return;
+
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+    // Position camera slightly further away so the whole frame fits perfectly
+    camera.position.set(0, 0, 1.2);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.appendChild(renderer.domElement);
+
+    // Add Blender-like OrbitControls for mouse interaction (rotate, pan, zoom)
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.enableZoom = true;
+    controls.enablePan = true;
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 2.2);
+    scene.add(ambientLight);
+
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.8);
+    dirLight1.position.set(2, 2, 2);
+    scene.add(dirLight1);
+
+    const dirLight2 = new THREE.DirectionalLight(0xffffff, 1.2);
+    dirLight2.position.set(-2, -2, -2);
+    scene.add(dirLight2);
+
+    const loader = new GLTFLoader();
+
+    loader.load(
+      modelUrl,
+      (gltf) => {
+        const modelNode = gltf.scene;
+        const box = new THREE.Box3().setFromObject(modelNode);
+        const center = box.getCenter(new THREE.Vector3());
+        modelNode.position.sub(center);
+        modelNode.rotation.y = turn;
+        scene.add(modelNode);
+      },
+      undefined,
+      (err) => console.error("GLTF load error:", err)
+    );
+
+    let animationId: number;
+    const animate = () => {
+      animationId = requestAnimationFrame(animate);
+      controls.update(); // Update orbit controls each frame
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    const handleResize = () => {
+      if (!container) return;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    };
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      window.removeEventListener("resize", handleResize);
+      controls.dispose();
+      if (container && renderer.domElement) {
+        container.removeChild(renderer.domElement);
+      }
+      renderer.dispose();
+    };
+  }, [modelUrl, turn]);
+
+  return <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing touch-none" />;
 }
 
-export default function Home() {
+export default function CatalogPage() {
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const isDark = theme === "dark";
+
   return (
-    <main className="min-h-screen bg-neutral-950 text-neutral-100">
-      <header className="border-b border-neutral-800 px-6 py-5 text-lg font-light tracking-[0.3em]">
-        INNOVIBE DIGITAL
+    <main className={`min-h-screen flex flex-col justify-between p-8 md:p-12 transition-colors duration-300 ${
+      isDark ? "bg-neutral-950 text-neutral-100" : "bg-neutral-50 text-neutral-900"
+    }`}>
+      <header className={`max-w-6xl mx-auto w-full flex items-center justify-between border-b pb-6 ${
+        isDark ? "border-neutral-800" : "border-neutral-200"
+      }`}>
+        <button
+          onClick={() => setTheme(isDark ? "light" : "dark")}
+          className={`group flex items-center justify-center p-2.5 rounded-2xl border transition-all duration-300 shadow-sm ${
+            isDark
+              ? "bg-neutral-900/80 border-neutral-800 text-amber-400 hover:border-amber-400/50"
+              : "bg-white border-neutral-300 text-amber-600 hover:border-amber-500/50"
+          }`}
+          title="Toggle Theme"
+        >
+          {isDark ? "☀️" : "🌙"}
+        </button>
+
+        <span className="text-sm tracking-[0.4em] uppercase font-mono text-amber-400">
+          REALMEN LUXURY
+        </span>
+
+        <span className="text-xs tracking-widest font-mono hidden sm:inline opacity-70">
+          VIRTUAL TRY-ON STUDIO
+        </span>
       </header>
 
-      <section className="px-6 py-20 text-center">
-        <h1 className="text-4xl font-light sm:text-6xl">
-          Find Your Perfect Frames.
-          <br />
-          <span className="text-neutral-400">Try Them On Live.</span>
-        </h1>
+      <section className="max-w-6xl mx-auto w-full py-12">
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <h1 className={`text-4xl md:text-5xl font-extralight tracking-tight mb-4 ${isDark ? "text-white" : "text-black"}`}>
+            Next-Generation <span className="text-amber-400 font-normal">WebAR</span> Collection
+          </h1>
+          <p className={`text-sm md:text-base font-light ${isDark ? "text-neutral-400" : "text-neutral-600"}`}>
+            Experience our luxury frames live in interactive 3D and augmented reality powered by AI face analysis. All frames priced at $64.00.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {Object.entries(glasses).map(([key, g]) => (
+            <div
+              key={key}
+              className={`group rounded-3xl border p-6 flex flex-col justify-between backdrop-blur-xl transition-all duration-500 shadow-xl ${
+                isDark
+                  ? "bg-neutral-900/60 border-neutral-800 hover:border-amber-400/50 hover:shadow-amber-400/5"
+                  : "bg-white border-neutral-200 hover:border-amber-500/50 hover:shadow-neutral-300"
+              }`}
+            >
+              <div>
+                {/* Interactive 3D Orbit Model Box */}
+                <div className={`aspect-[4/3] rounded-2xl border mb-6 flex items-center justify-center overflow-hidden relative shadow-inner ${
+                  isDark ? "bg-neutral-950/80 border-neutral-800/60" : "bg-neutral-100 border-neutral-200"
+                }`}>
+                  <Catalog3DCanvas modelUrl={g.model} turn={g.turn} />
+                  <div className="absolute bottom-3 right-3 pointer-events-none text-[9px] uppercase tracking-widest font-mono bg-neutral-900/80 text-amber-400 px-2 py-0.5 rounded border border-neutral-800 opacity-60">
+                    Interactive 3D
+                  </div>
+                </div>
+                <h2 className={`text-xl font-light mb-1 transition-colors ${
+                  isDark ? "text-white group-hover:text-amber-400" : "text-black group-hover:text-amber-600"
+                }`}>
+                  {g.name}
+                </h2>
+                <p className="text-amber-400 font-mono font-medium text-lg mb-4">
+                  ${g.price}.00
+                </p>
+              </div>
+
+              <div className={`flex flex-col gap-3 pt-4 border-t ${isDark ? "border-neutral-800/80" : "border-neutral-200"}`}>
+                <Link
+                  href={`/select-color?id=${key}`}
+                  className="w-full py-3.5 rounded-xl bg-amber-400 text-neutral-950 font-semibold text-xs uppercase tracking-widest text-center hover:bg-amber-300 transition-all shadow-lg shadow-amber-400/10"
+                >
+                  Launch Virtual Try-On
+                </Link>
+                <a
+                  href={g.hostingerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`w-full py-3 rounded-xl border text-xs uppercase tracking-widest text-center transition-all ${
+                    isDark
+                      ? "bg-neutral-900 border-neutral-800 text-neutral-300 hover:border-neutral-600 hover:text-white"
+                      : "bg-neutral-100 border-neutral-300 text-neutral-700 hover:border-neutral-400 hover:text-black"
+                  }`}
+                >
+                  View on Store ↗
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
 
-      <section className="mx-auto grid max-w-6xl gap-6 px-6 pb-24 sm:grid-cols-3">
-        {glasses.map((g) => (
-          <Link
-            key={g.id}
-            href={`/select-color?id=${g.id}`}
-            className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6 transition hover:border-neutral-500"
-          >
-            <div className="flex aspect-[3/2] items-center justify-center rounded-xl bg-neutral-950">
-              <GlassesSVG shape={g.shape} color={g.color} />
-            </div>
-            <h2 className="mt-5 text-lg font-light">{g.name}</h2>
-            <p className="text-sm text-neutral-400">${g.price}</p>
-          </Link>
-        ))}
-      </section>
+      <footer className={`max-w-6xl mx-auto w-full text-center text-xs pt-8 border-t font-mono ${
+        isDark ? "border-neutral-800 text-neutral-500" : "border-neutral-200 text-neutral-400"
+      }`}>
+        © 2026 RealMen Luxury. Powered by Innovibe Digital.
+      </footer>
     </main>
   );
 }

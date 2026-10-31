@@ -16,9 +16,9 @@ export const glasses: Record<string, Glasses> = {
   aviator: {
     name: "Luxe Square Aviator Sunglasses",
     model: "/models/glasses.glb",
-    price: 149,
+    price: 64,
     shape: "aviator",
-    color: "#1c1c1c", // Default Matte Black
+    color: "#1c1c1c",
     hostingerUrl: "https://realmenluxury.fashion/luxury-gold-frame-square-sunglasses",
     turn: 0,
     colors: [
@@ -30,7 +30,7 @@ export const glasses: Record<string, Glasses> = {
   tortoise: {
     name: "Retro Oval Sunglasses",
     model: "/models/glasses1.glb",
-    price: 169,
+    price: 64,
     shape: "round",
     color: "#8b5a2b",
     hostingerUrl: "https://realmenluxury.fashion/retro-oval-gold-sunglasses",
@@ -44,7 +44,7 @@ export const glasses: Record<string, Glasses> = {
   wire: {
     name: "Geometric Navigator Sunglasses",
     model: "/models/glasses2.glb",
-    price: 139,
+    price: 64,
     shape: "rect",
     color: "#1c1c1c",
     hostingerUrl: "https://realmenluxury.fashion/retro-square-navigator-sunglasses",
